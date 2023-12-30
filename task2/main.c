@@ -4,7 +4,6 @@
 #include <time.h>
 #include <sys/time.h>
 #include <stdlib.h>
-#include <sys/wait.h>
 
 void dump(int index) {
     struct timeval tp;
@@ -23,6 +22,26 @@ void dump(int index) {
     }
 }
 
+void create_processes(int level, int children, int index) {
+    if (level <= 0) {
+        dump(index);
+        return;
+    }
+    for (int i = 0; i < children; i++) {
+        pid_t pid = fork();
+        if (pid < 0) {
+            printf("fork %d failed\n", index);
+            return;
+        }
+        if (pid == 0) {
+            create_processes(level - 1, children, index * children + 1 + i);
+            return;
+        }
+    }
+
+    dump(index);
+}
+
 int main(int argc, char* argv[]) {
     if (argc != 3) {
         printf("Usage: %s n m\n", argv[0]);
@@ -35,28 +54,5 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     
-    int index = 0;
-    int i;
-    int j = 0;
-    start:
-    level -= 1;
-    if (level < 0) {
-        goto end;
-    }
-    for (i = 0; i < children; i++) {
-        j = index;
-        index = index * children + 1 + i;
-        pid_t pid = fork();
-        if (pid < 0) {
-            printf("fork %d failed\n", index);
-            return 1;
-        }
-        if (pid == 0) {
-            goto start;
-        } else {
-            index = j;
-        }
-    }
-    end:
-    dump(index);
+    create_processes(level, children, 0);
 }
