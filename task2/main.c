@@ -11,12 +11,15 @@ void dump(int index) {
     struct tm *t;
     int status;
     while (1) {
+        if (index == 0) {
+            usleep(2000);
+            continue;
+        }
         gettimeofday(&tp, 0);
         t = localtime(&tp.tv_sec);
         printf("process number: %d, pid: %d, ppid: %d, time: %02d:%02d:%02d:%03ld\n", index, getpid(),
             getppid(), t->tm_hour, t->tm_min, t->tm_sec, tp.tv_usec/1000);
-        usleep((index+1) * 200 * 1000);
-        // while (wait(&status) > 0);
+        usleep(index * 200 * 1000);
     }
 }
 
